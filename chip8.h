@@ -1,0 +1,9 @@
+
+#define MEMORIA_TAM 4096
+#define STACK_TAMANHO 16
+#define REGISTRADORES_QUANTIDADE 16
+#define TELA_TAMANHO 64 * 32
+#define FONTSET_TAMANHO 80
+#define TECLAS_QUANTIDADE 16
+
+typedef struct chip8_st CHIP8;

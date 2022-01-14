@@ -8,7 +8,7 @@ CC = gcc
 COMPILER_FLAGS = -Wall -march=native -O3
 
 # Flags do SDL
-LINKER_FLAGS = -lSDL2 -lSDL2_image
+LINKER_FLAGS = -lSDL2
 
 # Executável
 OBJ_NAME = main

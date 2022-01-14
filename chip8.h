@@ -7,3 +7,5 @@
 #define TECLAS_QUANTIDADE 16
 
 typedef struct chip8_st CHIP8;
+
+void CHIP8_Ciclo(CHIP8 *chip8);

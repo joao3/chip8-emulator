@@ -1,3 +1,5 @@
+#ifndef __CHIP8_H__
+#define __CHIP8_H__
 
 #define MEMORIA_TAM 4096
 #define STACK_TAMANHO 16
@@ -8,4 +10,12 @@
 
 typedef struct chip8_st CHIP8;
 
-void CHIP8_Ciclo(CHIP8 *chip8);
+CHIP8 * CHIP8_criar();
+void CHIP8_destruir(CHIP8 **chip8);
+void CHIP8_inicializar(CHIP8 *chip8);
+void CHIP8_carregarROM(CHIP8 *chip8, char *romNome);
+void CHIP8_ciclo(CHIP8 *chip8);
+unsigned char CHIP8_pegarPixelTela(CHIP8 *chip8, int i);
+unsigned char CHIP8_pegarDrawFlag(CHIP8 *chip8);
+
+#endif // __CHIP8_H__

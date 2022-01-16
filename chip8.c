@@ -65,7 +65,10 @@ static void OP_setI(CHIP8 *chip8);
 static void OP_jumpPlus(CHIP8 *chip8);
 static void OP_andRand(CHIP8 *chip8);
 static void OP_draw(CHIP8 *chip8);
+static void OP_skipKeyPressed(CHIP8 *chip8);
+static void OP_skipKeyNotPressed(CHIP8 *chip8);
 static void OP_getDelayTimer(CHIP8 *chip8);
+static void OP_getKey(CHIP8 *chip8);
 static void OP_setDelayTimer(CHIP8 *chip8);
 static void OP_setSoundTimer(CHIP8 *chip8);
 static void OP_addI(CHIP8 *chip8);
@@ -83,6 +86,15 @@ CHIP8 * CHIP8_criar()
         exit(-1);
     }
     return chip8;
+}
+
+void CHIP8_destruir(CHIP8 **chip8)
+{
+    if (*chip8 != NULL)
+    {
+        free(*chip8);
+        *chip8 = NULL;
+    }
 }
 
 void CHIP8_inicializar(CHIP8 *chip8)
@@ -133,7 +145,7 @@ void CHIP8_carregarROM(CHIP8 *chip8, char *romNome)
 {
     if (chip8 != NULL)
     {
-        FILE *rom = fopen(romNome, "r");
+        FILE *rom = fopen(romNome, "rb");
         int i = 0;
         while (!feof(rom))
         {
@@ -141,6 +153,7 @@ void CHIP8_carregarROM(CHIP8 *chip8, char *romNome)
             chip8->memoria[i + 512] = c;
             i++;
         }
+        //chip8->memoria[i+512-1] = 0;
         fclose(rom);
     }
 }
@@ -163,6 +176,16 @@ void CHIP8_ciclo(CHIP8 *chip8)
         }
         chip8->soundTimer--;
     }
+}
+
+unsigned char CHIP8_pegarDrawFlag(CHIP8 *chip8)
+{
+    return chip8->drawFlag;
+}
+
+unsigned char CHIP8_pegarPixelTela(CHIP8 *chip8, int i)
+{
+    return chip8->tela[i];
 }
 
 static unsigned short CHIP8_opcodeBuscar(CHIP8 *chip8)
@@ -262,6 +285,7 @@ static void CHIP8_opcodeDecodificar(CHIP8 *chip8)
                 default:
                     printf("Opcode desconhecido: 0x%X\n", opcode);
             }
+            break;
 
         case 0x9000:
             OP_skipNotEqualReg(chip8);
@@ -284,6 +308,19 @@ static void CHIP8_opcodeDecodificar(CHIP8 *chip8)
             break;
 
         case 0xE000:
+            switch (chip8->opcode & 0x00FF)
+            {
+                case 0x009E:
+                    OP_skipKeyPressed(chip8);
+                    break;
+
+                case 0x00A1:
+                    OP_skipKeyNotPressed(chip8);
+                    break;
+
+                default:
+                    printf("Opcode desconhecido: 0x%X\n", opcode);
+            }
             break;
 
         case 0xF000:
@@ -294,6 +331,7 @@ static void CHIP8_opcodeDecodificar(CHIP8 *chip8)
                     break;
 
                 case 0x000A:
+                    OP_getKey(chip8);
                     break;
 
                 case 0x0015:
@@ -327,6 +365,7 @@ static void CHIP8_opcodeDecodificar(CHIP8 *chip8)
                 default:
                     printf("Opcode desconhecido: 0x%X\n", opcode);
             }
+            break;
         default:
             printf("Opcode desconhecido: 0x%X\n", opcode);
     }
@@ -343,7 +382,9 @@ static void OP_cls(CHIP8 *chip8)
 
 static void OP_rts(CHIP8 *chip8)
 {
-    chip8->pc = chip8->stack[--chip8->sp];
+    chip8->sp--;
+    chip8->pc = chip8->stack[chip8->sp];
+    chip8->pc += 2;
 }
 
 static void OP_jump(CHIP8 *chip8)
@@ -355,7 +396,7 @@ static void OP_call(CHIP8 *chip8)
 {
     chip8->stack[chip8->sp] = chip8->pc;
     chip8->sp++;
-    OP_jump(chip8);
+    chip8->pc = chip8->opcode & 0x0FFF;
 }
 
 static void OP_skipEqual(CHIP8 *chip8)
@@ -408,7 +449,7 @@ static void OP_addReg(CHIP8 *chip8)
 
 static void OP_setRegReg(CHIP8 *chip8)
 {
-    chip8->V[(chip8->opcode & 0x0F00) >> 8] = chip8->V[(chip8->opcode & 0x00F0 >> 4)];
+    chip8->V[(chip8->opcode & 0x0F00) >> 8] = chip8->V[(chip8->opcode & 0x00F0) >> 4];
     chip8->pc += 2;
 }
 
@@ -461,7 +502,7 @@ static void OP_subBorrow(CHIP8 *chip8)
 static void OP_rShift(CHIP8 *chip8)
 {
     chip8->V[0xF] = chip8->V[(chip8->opcode & 0x0F00) >> 8] & 0x1;
-    chip8->V[(chip8->opcode & 0x0F00) >> 8] >>= 1;
+    chip8->V[(chip8->opcode & 0x0F00) >> 8] >>= 0x1;
     chip8->pc += 2;
 }
 
@@ -530,9 +571,45 @@ static void OP_draw(CHIP8 *chip8)
     chip8->pc += 2;
 }
 
+static void OP_skipKeyPressed(CHIP8 *chip8)
+{
+    if (chip8->teclas[chip8->V[(chip8->opcode & 0x0F00) >> 8]] != 0)
+    {
+        chip8->pc += 2;
+    }
+    chip8->pc += 2;
+}
+
+static void OP_skipKeyNotPressed(CHIP8 *chip8)
+{
+    if (chip8->teclas[chip8->V[(chip8->opcode & 0x0F00) >> 8]] == 0)
+    {
+        chip8->pc += 2;
+    }
+    chip8->pc += 2;
+}
+
 static void OP_getDelayTimer(CHIP8 *chip8)
 {
     chip8->V[(chip8->opcode & 0x0F00) >> 8] = chip8->delayTimer;
+    chip8->pc += 2;
+}
+
+static void OP_getKey(CHIP8 *chip8)
+{
+    int pressed = 0;
+    for (int i = 0; i < TECLAS_QUANTIDADE; i++)
+    {
+        if (chip8->teclas[i] != 0)
+        {
+            chip8->V[(chip8->opcode & 0x0F00) >> 8] = i;
+            pressed = 1;
+        }
+    }
+    if (!pressed)
+    {
+        return;
+    }
     chip8->pc += 2;
 }
 

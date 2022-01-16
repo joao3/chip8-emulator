@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 #include "chip8.h"
 
@@ -153,7 +154,6 @@ void CHIP8_carregarROM(CHIP8 *chip8, char *romNome)
             chip8->memoria[i + 512] = c;
             i++;
         }
-        //chip8->memoria[i+512-1] = 0;
         fclose(rom);
     }
 }
@@ -186,6 +186,11 @@ unsigned char CHIP8_pegarDrawFlag(CHIP8 *chip8)
 unsigned char CHIP8_pegarPixelTela(CHIP8 *chip8, int i)
 {
     return chip8->tela[i];
+}
+
+void CHIP8_definirTecla(CHIP8 *chip8, unsigned char x, int i)
+{
+    chip8->teclas[i] = x;
 }
 
 static unsigned short CHIP8_opcodeBuscar(CHIP8 *chip8)
@@ -540,6 +545,7 @@ static void OP_jumpPlus(CHIP8 *chip8)
 
 static void OP_andRand(CHIP8 *chip8)
 {
+    srand(time(NULL));
     chip8->V[(chip8->opcode & 0x0F00) >> 8] = (rand() % 0xFF) & (chip8->opcode & 0x00FF);
     chip8->pc += 2;
 }

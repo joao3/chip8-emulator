@@ -3,14 +3,16 @@
 #include "chip8.h"
 #include "render.h"
 
-void delay(int sec)
+int teclas[TECLAS_QUANTIDADE] =
 {
-    int m_sec = 1000 * sec;
-    clock_t start_time = clock();
-    while (clock() < start_time + m_sec);
-}
+    SDLK_x, SDLK_1, SDLK_2, SDLK_3,
+    SDLK_q, SDLK_w, SDLK_e, SDLK_a,
+    SDLK_s, SDLK_d, SDLK_z, SDLK_c,
+    SDLK_4, SDLK_r, SDLK_f, SDLK_v
+};
 
 void imprimir_tela(CHIP8 *chip8, SDL_Renderer *renderer);
+void delay(int sec);
 
 int main(int argc, char *argv[])
 {
@@ -42,6 +44,34 @@ int main(int argc, char *argv[])
             {
                 sair = TRUE;
             }
+
+            if (evento.type == SDL_KEYDOWN)
+            {
+                int tecla = evento.key.keysym.sym;
+                if (tecla == SDLK_ESCAPE)
+                {
+                    sair = TRUE;
+                    break;
+                }
+                for (int i = 0; i < TECLAS_QUANTIDADE; i++)
+                {
+                    if (tecla == teclas[i])
+                    {
+                        CHIP8_definirTecla(chip8, 1, i);
+                    }
+                }
+            }
+            if (evento.type == SDL_KEYUP)
+            {
+                int tecla = evento.key.keysym.sym;
+                for (int i = 0; i < TECLAS_QUANTIDADE; i++)
+                {
+                    if (tecla == teclas[i])
+                    {
+                        CHIP8_definirTecla(chip8, 0, i);
+                    }
+                }
+            }
         }
 
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
@@ -49,13 +79,13 @@ int main(int argc, char *argv[])
 
         CHIP8_ciclo(chip8);
 
-        if (CHIP8_pegarDrawFlag(chip8))
-        {
+        if (CHIP8_pegarDrawFlag(chip8)) {
             imprimir_tela(chip8, renderer);
         }
 
-
         SDL_RenderPresent(renderer);
+
+
 
         delay(1);
     }
@@ -77,4 +107,11 @@ void imprimir_tela(CHIP8 *chip8, SDL_Renderer *renderer)
             retangulo(renderer, x * 10, y * 10, 10, 10);
         }
     }
+}
+
+void delay(int sec)
+{
+    int m_sec = 1000 * sec;
+    clock_t start_time = clock();
+    while (clock() < start_time + m_sec);
 }

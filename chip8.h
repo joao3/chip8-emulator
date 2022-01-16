@@ -17,5 +17,6 @@ void CHIP8_carregarROM(CHIP8 *chip8, char *romNome);
 void CHIP8_ciclo(CHIP8 *chip8);
 unsigned char CHIP8_pegarPixelTela(CHIP8 *chip8, int i);
 unsigned char CHIP8_pegarDrawFlag(CHIP8 *chip8);
+void CHIP8_definirTecla(CHIP8 *chip8, unsigned char x, int i);
 
 #endif // __CHIP8_H__

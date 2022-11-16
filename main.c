@@ -1,4 +1,5 @@
 #include <time.h>
+#include <stdio.h>
 
 #include "chip8.h"
 #include "render.h"
@@ -12,7 +13,7 @@ int teclas[TECLAS_QUANTIDADE] =
 };
 
 void imprimir_tela(CHIP8 *chip8, SDL_Renderer *renderer);
-void delay(int sec);
+void delay(float sec);
 
 int main(int argc, char *argv[])
 {
@@ -87,7 +88,7 @@ int main(int argc, char *argv[])
 
 
 
-        delay(1);
+        delay(0.001);
     }
 
     fechar(&janela, &renderer, &textura);
@@ -109,7 +110,7 @@ void imprimir_tela(CHIP8 *chip8, SDL_Renderer *renderer)
     }
 }
 
-void delay(int sec)
+void delay(float sec)
 {
     int m_sec = 1000 * sec;
     clock_t start_time = clock();

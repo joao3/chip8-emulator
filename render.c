@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "render.h"
 
 boolean iniciar(SDL_Window **janela, SDL_Renderer **renderer)
